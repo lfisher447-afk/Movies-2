@@ -1,24 +1,26 @@
-# Use the official Node.js 18 Alpine base image for a small footprint
+# Use Node 18 Alpine for high performance and small image size
 FROM node:18-alpine
 
 # Set the working directory
 WORKDIR /usr/src/app
 
 # Copy package info
+# This will copy package.json (and package-lock.json if it exists later)
 COPY package*.json ./
 
-# Install the production dependencies
-RUN npm ci --only=production
+# 10X FIX: We use 'npm install' with '--omit=dev' because a lockfile wasn't found.
+# This ensures a fast, production-only install without the strict lockfile requirement.
+RUN npm install --omit=dev
 
 # Copy the rest of the application code
 COPY . .
 
-# Expose the port the app runs on
+# Expose Port 3000 (Synchronized with Railway Networking)
 EXPOSE 3000
 
-# Health check to verify the app is running
+# Health check to ensure the engine is responsive
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-# Command to run the application
+# Command to run the application using the Omega Engine entry point
 CMD ["npm", "start"]
