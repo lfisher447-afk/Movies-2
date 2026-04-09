@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced HTML5 Media Player</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #player { max-width: 800px; margin: auto; }
+        video, audio { width: 100%; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div id="player">
+        <video id="videoPlayer" controls preload="metadata">
+            <source src="/path/to/video.mp4" type="video/mp4">
+            Your browser does not support HTML5 video.
+        </video>
+        <div>
+            <button onclick="toggleFullscreen()">Fullscreen</button>
+            <span id="stats"></span>
+            <div id="playlist">
+                <h3>Playlist</h3>
+                <ul id="playlistItems"></ul>
+            </div>
+        </div>
+        <div>
+            <label for="qualitySelect">Quality: </label>
+            <select id="qualitySelect" onchange="changeQuality()">
+                <option value="360p">360p</option>
+                <option value="480p">480p</option>
+                <option value="720p">720p</option>
+                <option value="1080p">1080p</option>
+            </select>
+        </div>
+        <div>
+            <label for="subtitleSelect">Subtitles: </label>
+            <select id="subtitleSelect" onchange="changeSubtitle()">
+                <option value="none">None</option>
+                <option value="sub_en.vtt">English</option>
+                <option value="sub_es.vtt">Spanish</option>
+            </select>
+        </div>
+    </div>
+
+    <script>
+        const videoPlayer = document.getElementById('videoPlayer');
+        const qualitySelect = document.getElementById('qualitySelect');
+        const subtitleSelect = document.getElementById('subtitleSelect');
+        const stats = document.getElementById('stats');
+
+        function changeQuality() {
+            // Logic to change video quality
+            const quality = qualitySelect.value;
+            stats.innerText = 'Quality set to: ' + quality;
+        }
+
+        function changeSubtitle() {
+            const subtitle = subtitleSelect.value;
+            // Logic to change subtitles (handling URLs, etc.)
+            if (subtitle === 'none') {
+                videoPlayer.textTracks[0].mode = 'hidden';
+            } else {
+                videoPlayer.textTracks[0].mode = 'showing';
+            }
+        }
+
+        function toggleFullscreen() {
+            if (videoPlayer.requestFullscreen) {
+                videoPlayer.requestFullscreen();
+            } else if (videoPlayer.webkitRequestFullscreen) { 
+                videoPlayer.webkitRequestFullscreen();
+            } else if (videoPlayer.msRequestFullscreen) {
+                videoPlayer.msRequestFullscreen();
+            }
+        }
+
+        document.addEventListener('keydown', (event) => {
+            switch(event.key) {
+                case "f": toggleFullscreen(); break;
+                // Add more keyboard shortcuts
+            }
+        });
+
+        // Stats display (real-time buffering)
+        videoPlayer.addEventListener('progress', () => {
+            const buffered = videoPlayer.buffered;
+            if (buffered.length > 0) {
+                const percent = (buffered.end(0) / videoPlayer.duration) * 100;
+                stats.innerText = 'Buffered: ' + percent.toFixed(2) + '%';
+            }
+        });
+
+        // Example playlist management
+        const playlist = ['video1.mp4', 'video2.mp4', 'video3.mp4'];
+        const playlistItems = document.getElementById('playlistItems');
+        playlist.forEach((video, index) => {
+            const li = document.createElement('li');
+            li.innerText = video;
+            li.onclick = () => { loadVideo(video); };
+            playlistItems.appendChild(li);
+        });
+
+        function loadVideo(videoFile) {
+            videoPlayer.src = videoFile;
+            videoPlayer.play();
+        }
+    </script>
+</body>
+</html>
