@@ -6,6 +6,7 @@ const compression = require('compression');
 const axios = require('axios');
 const cluster = require('cluster');
 const os = require('os');
+const path = require('path');
 const adBlocker = require('./adBlocker');
 require('dotenv').config();
 
@@ -16,6 +17,12 @@ app.use(cors({ origin: process.env.ALLOWED_ORIGINS || '*' }));
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false })); // Disabled CSP to allow external streams
 app.use(compression());
 app.use(morgan('dev'));
+
+// =========================================================================
+// FRONTEND SERVING (Required for Railway / Docker / PM2)
+// =========================================================================
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Vercel / Root Health Check
 app.get('/api/health', (req, res) => {
@@ -39,7 +46,7 @@ app.get('/api/proxy', async (req, res) => {
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.5'
             },
-            timeout: 15000 // Vercel timeout safety
+            timeout: 15000 
         });
 
         const contentType = response.headers['content-type'];
@@ -74,24 +81,34 @@ app.get('/api/proxy', async (req, res) => {
     }
 });
 
-// Export for Vercel Serverless Function compatibility
+// =========================================================================
+// CATCH-ALL ROUTE: Send to UI (Must be the very last route)
+// =========================================================================
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// Export for Serverless Function compatibility
 module.exports = app;
 
-// Local Node.js / VPS Clustering fallback
+// Local Node.js / Railway / VPS Clustering initialization
 if (require.main === module) {
+    // Railway assigns a dynamic PORT environment variable. We MUST use it.
     const PORT = process.env.PORT || 3000;
     const ENABLE_CLUSTERING = process.env.ENABLE_CLUSTERING === 'true';
 
     if (ENABLE_CLUSTERING && cluster.isPrimary) {
         console.log(`[Omega Master] Primary ${process.pid} running`);
         const numCPUs = os.cpus().length;
+        // Fork a worker for every CPU core Railway provisions for your container
         for (let i = 0; i < numCPUs; i++) cluster.fork();
+        
         cluster.on('exit', (worker) => {
             console.log(`[Omega Worker] Worker ${worker.process.pid} died. Booting replacement...`);
             cluster.fork();
         });
     } else {
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`[Omega Engine] Listening on port ${PORT} (PID: ${process.pid})`);
         });
     }
