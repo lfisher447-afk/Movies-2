@@ -40,48 +40,48 @@
                keyframes: {
                   fadeIn: {
                      "0%": {
-                        opacity: "0",
+                        opacity: "0"
                      },
                      "100%": {
-                        opacity: "1",
+                        opacity: "1"
                      },
                   },
                   slideUp: {
                      "0%": {
                         opacity: "0",
-                        transform: "translateY(30px)",
+                        transform: "translateY(30px)"
                      },
                      "100%": {
                         opacity: "1",
-                        transform: "translateY(0)",
+                        transform: "translateY(0)"
                      },
                   },
                   scaleIn: {
                      "0%": {
                         opacity: "0",
-                        transform: "scale(0.95)",
+                        transform: "scale(0.95)"
                      },
                      "100%": {
                         opacity: "1",
-                        transform: "scale(1)",
+                        transform: "scale(1)"
                      },
                   },
                   pulseGlow: {
                      "0%, 100%": {
                         opacity: "0.3",
-                        transform: "scale(1)",
+                        transform: "scale(1)"
                      },
                      "50%": {
                         opacity: "0.6",
-                        transform: "scale(1.05)",
+                        transform: "scale(1.05)"
                      },
                   },
                   shimmer: {
                      "0%": {
-                        backgroundPosition: "-200% 0",
+                        backgroundPosition: "-200% 0"
                      },
                      "100%": {
-                        backgroundPosition: "200% 0",
+                        backgroundPosition: "200% 0"
                      },
                   },
                },
@@ -210,7 +210,6 @@
          inset: 0 !important;
          width: 100vw !important;
          height: 100dvh !important;
-         /* using dvh to solve mobile browser UI bar issues */
          max-width: none !important;
          max-height: none !important;
          z-index: 99999999 !important;
@@ -262,9 +261,15 @@
                super();
             }
             connectedCallback() {
-               this.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-presentation allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation", );
-               this.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture; display-capture;");
-               this.setAttribute("referrerpolicy", "no-referrer");
+               // COMPLETELY REMOVED THE SANDBOX ATTRIBUTE TO FIX PLAYBACK ISSUES
+               // Added comprehensive permissions needed for premium players to function
+               this.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture; display-capture; accelerometer; gyroscope; xr-spatial-tracking; web-share");
+               this.setAttribute("allowfullscreen", "true");
+               this.setAttribute("webkitallowfullscreen", "true");
+               this.setAttribute("mozallowfullscreen", "true");
+               this.setAttribute("scrolling", "no");
+               this.setAttribute("frameborder", "0");
+               this.setAttribute("referrerpolicy", "origin"); // Critical for loading video blobs and HLS streams
                if (this.getAttribute("src")) this.navigate(this.getAttribute("src"));
             }
             async navigate(url) {
@@ -1304,7 +1309,7 @@
             type: null,
             id: null,
             s: null,
-            e: null,
+            e: null
          },
          sleepTimerId: null,
          startTime: 0,
@@ -1314,7 +1319,7 @@
                type,
                id,
                s: season,
-               e: episode,
+               e: episode
             };
             this.startTime = Date.now();
             if (AppState.settings.cinemaDim) document.body.style.backgroundColor = "#000";
@@ -1334,7 +1339,7 @@
 
                             ${AppState.settings.ambientGlow ? `<div class="absolute inset-0 z-[-1] animate-pulse-glow bg-theme-primary/30 blur-[100px] rounded-full scale-110"></div>` : ""}
 
-                            <iframe id="video-iframe" is="x-frame-bypass" class="w-full h-full border-0 absolute z-10 bg-black pointer-events-auto"></iframe>
+                            <iframe id="video-iframe" is="x-frame-bypass" allowfullscreen="true" scrolling="no" class="w-full h-full border-0 absolute z-10 bg-black pointer-events-auto"></iframe>
 
                             <div class="absolute top-0 left-0 right-0 p-4 md:p-6 z-20 bg-gradient-to-b from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-between items-start pointer-events-none">
 
@@ -1975,4 +1980,4 @@
    </script>
 </body>
 
-  </html>
+</html>
