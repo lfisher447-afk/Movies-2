@@ -1,8 +1,9 @@
 node_modules/
-logs/
-media/
 npm-debug.log
 npm-debug.log.*
 .git/
+.env
+logs/
+media/
 *.test.js
 *.spec.js
